@@ -1,9 +1,10 @@
 CREATE TABLE session
 (
-    id       BIGINT AUTO_INCREMENT NOT NULL,
-    token    VARCHAR(255)          NULL,
-    is_valid BIT(1)                NOT NULL,
-    user_id  BIGINT                NULL,
+    id          BIGINT AUTO_INCREMENT NOT NULL,
+    token       VARCHAR(255)          NULL,
+    status      SMALLINT              NULL,
+    expiring_at datetime              NULL,
+    user_id     BIGINT                NULL,
     CONSTRAINT pk_session PRIMARY KEY (id)
 );
 
