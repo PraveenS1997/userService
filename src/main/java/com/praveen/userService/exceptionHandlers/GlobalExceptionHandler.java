@@ -1,7 +1,7 @@
 package com.praveen.userService.exceptionHandlers;
 
-import com.praveen.userService.exceptions.SessionException;
-import com.praveen.userService.exceptions.UserException;
+import com.praveen.userService.exceptions.SessionNotFoundException;
+import com.praveen.userService.exceptions.UserNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -9,14 +9,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    @ExceptionHandler(UserException.class)
-    public ResponseEntity<ExceptionResponse> handleProductNotFoundException(UserException exception) {
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ExceptionResponse> handleProductNotFoundException(UserNotFoundException exception) {
         ExceptionResponse error = new ExceptionResponse(exception.getMessage(), HttpStatus.NOT_FOUND.value());
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(SessionException.class)
-    public ResponseEntity<ExceptionResponse> handleUserNotFoundException(SessionException exception) {
+    @ExceptionHandler(SessionNotFoundException.class)
+    public ResponseEntity<ExceptionResponse> handleUserNotFoundException(SessionNotFoundException exception) {
         ExceptionResponse error = new ExceptionResponse(exception.getMessage(), HttpStatus.NOT_FOUND.value());
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }

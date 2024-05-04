@@ -1,7 +1,7 @@
 package com.praveen.userService.exceptions;
 
-public class SessionException extends RuntimeException{
-    public SessionException(String message) {
+public class SessionNotFoundException extends RuntimeException{
+    public SessionNotFoundException(String message) {
         super(message);
     }
 }

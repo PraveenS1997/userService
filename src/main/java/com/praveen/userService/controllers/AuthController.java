@@ -5,11 +5,7 @@ import com.praveen.userService.services.AuthService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.MultiValueMapAdapter;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
 
 @RestController
 @RequestMapping("/auth")
@@ -22,9 +18,10 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequestDto) {
-        LoginResponseDto loginResponseDto = authService.login(loginRequestDto.getEmail(), loginRequestDto.getPassword());
+        LoginResponseDto loginResponseDto = authService
+                .login(loginRequestDto.getEmail(), loginRequestDto.getPassword());
 
-        MultiValueMap<String, String> headers = new MultiValueMapAdapter<>(new HashMap<>());
+        HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.SET_COOKIE, "auth-token:"+loginResponseDto.getToken());
 
         return new ResponseEntity<>(loginResponseDto, headers, HttpStatus.OK);

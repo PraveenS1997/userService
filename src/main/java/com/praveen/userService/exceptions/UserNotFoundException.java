@@ -1,8 +1,8 @@
 package com.praveen.userService.exceptions;
 
-public class UserException extends RuntimeException{
+public class UserNotFoundException extends RuntimeException{
 
-    public UserException(String message){
+    public UserNotFoundException(String message){
         super(message);
     }
 }

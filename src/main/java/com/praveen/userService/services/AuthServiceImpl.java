@@ -1,8 +1,7 @@
 package com.praveen.userService.services;
 
-import com.praveen.userService.Utils.Guard;
 import com.praveen.userService.dtos.*;
-import com.praveen.userService.exceptions.UserException;
+import com.praveen.userService.exceptions.UserNotFoundException;
 import com.praveen.userService.models.Session;
 import com.praveen.userService.models.SessionStatus;
 import com.praveen.userService.models.User;
@@ -12,8 +11,10 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import java.util.Date;
+import java.util.Optional;
 
 @Service
 @Primary
@@ -32,15 +33,15 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public UserDto signUp(SignUpRequestDto signUpRequestDto) {
-        Guard.notNull(signUpRequestDto, "SignUpRequestDto is required");
-        Guard.notEmpty(signUpRequestDto.getEmail(), "Email is required");
-        Guard.notEmpty(signUpRequestDto.getName(), "Name is required");
-        Guard.notEmpty(signUpRequestDto.getPassword(), "Password is required");
+        Assert.notNull(signUpRequestDto, "SignUpRequestDto is required");
+        Assert.notNull(signUpRequestDto.getEmail(), "Email is required");
+        Assert.notNull(signUpRequestDto.getName(), "Name is required");
+        Assert.notNull(signUpRequestDto.getPassword(), "Password is required");
 
-        User user = userRepository.findUserByEmail(signUpRequestDto.getEmail());
+        Optional<User> user = userRepository.findUserByEmail(signUpRequestDto.getEmail());
 
-        if(user != null){
-            throw new UserException("Email " + signUpRequestDto.getEmail() + " already exists");
+        if(user.isEmpty()){
+            throw new UserNotFoundException("Email " + signUpRequestDto.getEmail() + " already exists");
         }
 
         User newUser = new User();
@@ -54,20 +55,20 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponseDto login(String email, String password) {
-        Guard.notEmpty(email, "Email is required");
-        Guard.notEmpty(password, "Password is required");
+        Assert.notNull(email, "Email is required");
+        Assert.notNull(password, "Password is required");
 
-        User user = userRepository.findUserByEmail(email);
+        Optional<User> optionalUser = userRepository.findUserByEmail(email);
 
-        if(user == null || !bCryptPasswordEncoder.matches(password, user.getPassword())){
-            throw new UserException("Invalid username and password");
+        if(optionalUser.isEmpty() || !bCryptPasswordEncoder.matches(password, optionalUser.get().getPassword())){
+            throw new UserNotFoundException("Invalid username and password");
         }
 
         Session session = new Session();
         session.setToken(RandomStringUtils.randomAlphanumeric(30));
         session.setStatus(SessionStatus.ACTIVE);
         session.setExpiringAt(new Date(System.currentTimeMillis() + 3600000));
-        session.setUser(user);
+        session.setUser(optionalUser.get());
         sessionRepository.save(session);
 
         return LoginResponseDto.from(session);
@@ -75,17 +76,17 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void logout(LogoutRequestDto logoutRequestDto) {
-        Guard.notNull(logoutRequestDto, "LoginRequestDto is required");
-        Guard.notEmpty(logoutRequestDto.getToken(), "Token is required");
-        Guard.greaterThanZero(logoutRequestDto.getUserId(), "User id is not valid");
+        Assert.notNull(logoutRequestDto, "LoginRequestDto is required");
+        Assert.notNull(logoutRequestDto.getToken(), "Token is required");
 
-        Session session = sessionRepository.findByToken(logoutRequestDto.getToken());
+        Optional<Session> optionalSession = sessionRepository.findByToken(logoutRequestDto.getToken());
 
         // Todo: token validation will be done in the other method
-        if(session == null){
+        if(optionalSession.isEmpty()){
             return;
         }
 
+        Session session = optionalSession.get();
         session.setStatus(SessionStatus.INACTIVE);
         sessionRepository.save(session);
     }
