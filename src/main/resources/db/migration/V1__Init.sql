@@ -1,18 +1,18 @@
 CREATE TABLE session
 (
-    token_id BIGINT       NOT NULL,
-    token    VARCHAR(255) NULL,
-    is_valid BIT(1)       NOT NULL,
-    user_id  BIGINT       NULL,
-    CONSTRAINT pk_session PRIMARY KEY (token_id)
+    id       BIGINT AUTO_INCREMENT NOT NULL,
+    token    VARCHAR(255)          NULL,
+    is_valid BIT(1)                NOT NULL,
+    user_id  BIGINT                NULL,
+    CONSTRAINT pk_session PRIMARY KEY (id)
 );
 
 CREATE TABLE user
 (
-    id       BIGINT       NOT NULL,
-    name     VARCHAR(255) NULL,
-    email    VARCHAR(255) NULL,
-    password VARCHAR(255) NULL,
+    id       BIGINT AUTO_INCREMENT NOT NULL,
+    name     VARCHAR(255)          NULL,
+    email    VARCHAR(255)          NULL,
+    password VARCHAR(255)          NULL,
     CONSTRAINT pk_user PRIMARY KEY (id)
 );
 

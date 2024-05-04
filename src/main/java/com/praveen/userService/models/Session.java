@@ -1,8 +1,6 @@
 package com.praveen.userService.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,7 +9,8 @@ import lombok.Setter;
 @Setter
 public class Session {
     @Id
-    private Long sessionId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     private String token;
 
