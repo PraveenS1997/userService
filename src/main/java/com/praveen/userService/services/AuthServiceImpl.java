@@ -8,7 +8,9 @@ import com.praveen.userService.models.SessionStatus;
 import com.praveen.userService.models.User;
 import com.praveen.userService.repositories.SessionRepository;
 import com.praveen.userService.repositories.UserRepository;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.context.annotation.Primary;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -18,10 +20,14 @@ import java.util.Date;
 public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final SessionRepository sessionRepository;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    public AuthServiceImpl(UserRepository userRepository, SessionRepository sessionRepository) {
+    public AuthServiceImpl(UserRepository userRepository,
+                           SessionRepository sessionRepository,
+                           BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.userRepository = userRepository;
         this.sessionRepository = sessionRepository;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
     @Override
@@ -40,7 +46,7 @@ public class AuthServiceImpl implements AuthService {
         User newUser = new User();
         newUser.setEmail(signUpRequestDto.getEmail());
         newUser.setName(signUpRequestDto.getName());
-        newUser.setPassword(signUpRequestDto.getPassword());
+        newUser.setPassword(bCryptPasswordEncoder.encode(signUpRequestDto.getPassword()));
 
         User savedUser = userRepository.save(newUser);
         return UserDto.from(savedUser);
@@ -51,14 +57,14 @@ public class AuthServiceImpl implements AuthService {
         Guard.notEmpty(email, "Email is required");
         Guard.notEmpty(password, "Password is required");
 
-        User user = userRepository.findUserByEmailAndPassword(email, password);
+        User user = userRepository.findUserByEmail(email);
 
-        if(user == null){
+        if(user == null || !bCryptPasswordEncoder.matches(password, user.getPassword())){
             throw new UserException("Invalid username and password");
         }
 
         Session session = new Session();
-        session.setToken("someRandomToken");
+        session.setToken(RandomStringUtils.randomAlphanumeric(30));
         session.setStatus(SessionStatus.ACTIVE);
         session.setExpiringAt(new Date(System.currentTimeMillis() + 3600000));
         session.setUser(user);
