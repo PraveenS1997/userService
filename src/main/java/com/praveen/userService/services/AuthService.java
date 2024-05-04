@@ -1,9 +1,6 @@
 package com.praveen.userService.services;
 
-import com.praveen.userService.dtos.LoginResponseDto;
-import com.praveen.userService.dtos.LogoutRequestDto;
-import com.praveen.userService.dtos.SignUpRequestDto;
-import com.praveen.userService.dtos.UserDto;
+import com.praveen.userService.dtos.*;
 
 public interface AuthService {
     UserDto signUp(SignUpRequestDto userDto);
@@ -11,4 +8,6 @@ public interface AuthService {
     LoginResponseDto login(String email, String password);
 
     void logout(LogoutRequestDto logoutRequestDto);
+
+    ValidateTokenResponseDto validateToken(ValidateTokenRequestDto validateTokenRequestDto);
 }

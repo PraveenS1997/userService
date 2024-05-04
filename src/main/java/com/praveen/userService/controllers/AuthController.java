@@ -32,4 +32,10 @@ public class AuthController {
         UserDto user = authService.signUp(signUpRequestDto);
         return new ResponseEntity<>(user, HttpStatus.CREATED);
     }
+
+    @PostMapping("/validate-token")
+    public ResponseEntity<ValidateTokenResponseDto> validateToken(@RequestBody ValidateTokenRequestDto validateTokenRequestDto) {
+        ValidateTokenResponseDto validateTokenResponseDto = authService.validateToken(validateTokenRequestDto);
+        return new ResponseEntity<>(validateTokenResponseDto, HttpStatus.OK);
+    }
 }

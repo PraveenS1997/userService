@@ -1,23 +1,17 @@
 package com.praveen.userService.services;
 
 import com.praveen.userService.Utils.Guard;
-import com.praveen.userService.dtos.LoginResponseDto;
-import com.praveen.userService.dtos.LogoutRequestDto;
-import com.praveen.userService.dtos.SignUpRequestDto;
-import com.praveen.userService.dtos.UserDto;
-import com.praveen.userService.exceptions.SessionException;
+import com.praveen.userService.dtos.*;
 import com.praveen.userService.exceptions.UserException;
 import com.praveen.userService.models.Session;
 import com.praveen.userService.models.SessionStatus;
 import com.praveen.userService.models.User;
 import com.praveen.userService.repositories.SessionRepository;
 import com.praveen.userService.repositories.UserRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
-import java.util.Optional;
 
 @Service
 @Primary
@@ -74,29 +68,24 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    @Transactional
     public void logout(LogoutRequestDto logoutRequestDto) {
         Guard.notNull(logoutRequestDto, "LoginRequestDto is required");
         Guard.notEmpty(logoutRequestDto.getToken(), "Token is required");
         Guard.greaterThanZero(logoutRequestDto.getUserId(), "User id is not valid");
-        Guard.greaterThanZero(logoutRequestDto.getSessionId(), "Session id is not valid");
 
-        Optional<Session> optionalSession = sessionRepository.findById(logoutRequestDto.getSessionId());
+        Session session = sessionRepository.findByToken(logoutRequestDto.getToken());
 
-        if(optionalSession.isEmpty()){
-            throw new SessionException("Invalid session id");
+        // Todo: token validation will be done in the other method
+        if(session == null){
+            return;
         }
 
-        Session session = optionalSession.get();
+        session.setStatus(SessionStatus.INACTIVE);
+        sessionRepository.save(session);
+    }
 
-        if(!session.getUser().getId().equals(logoutRequestDto.getUserId())){
-            throw new SessionException("Invalid user id");
-        }
-
-        if(!session.getToken().equals(logoutRequestDto.getToken())){
-            throw new SessionException("Invalid token");
-        }
-
-        sessionRepository.deleteSessionByIdAndUserId(logoutRequestDto.getSessionId(), logoutRequestDto.getUserId());
+    @Override
+    public ValidateTokenResponseDto validateToken(ValidateTokenRequestDto validateTokenRequestDto) {
+        return null;
     }
 }
