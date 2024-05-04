@@ -1,9 +1,11 @@
 package com.praveen.userService.services;
 
+import com.praveen.userService.Utils.Guard;
 import com.praveen.userService.dtos.LoginResponseDto;
 import com.praveen.userService.dtos.LogoutRequestDto;
 import com.praveen.userService.dtos.SignUpRequestDto;
 import com.praveen.userService.dtos.UserDto;
+import com.praveen.userService.exceptions.SessionException;
 import com.praveen.userService.exceptions.UserException;
 import com.praveen.userService.models.Session;
 import com.praveen.userService.models.SessionStatus;
@@ -30,6 +32,11 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public UserDto signUp(SignUpRequestDto signUpRequestDto) {
+        Guard.notNull(signUpRequestDto, "SignUpRequestDto is required");
+        Guard.notEmpty(signUpRequestDto.getEmail(), "Email is required");
+        Guard.notEmpty(signUpRequestDto.getName(), "Name is required");
+        Guard.notEmpty(signUpRequestDto.getPassword(), "Password is required");
+
         User user = userRepository.findUserByEmail(signUpRequestDto.getEmail());
 
         if(user != null){
@@ -47,6 +54,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponseDto login(String email, String password) {
+        Guard.notEmpty(email, "Email is required");
+        Guard.notEmpty(password, "Password is required");
+
         User user = userRepository.findUserByEmailAndPassword(email, password);
 
         if(user == null){
@@ -66,20 +76,25 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void logout(LogoutRequestDto logoutRequestDto) {
+        Guard.notNull(logoutRequestDto, "LoginRequestDto is required");
+        Guard.notEmpty(logoutRequestDto.getToken(), "Token is required");
+        Guard.greaterThanZero(logoutRequestDto.getUserId(), "User id is not valid");
+        Guard.greaterThanZero(logoutRequestDto.getSessionId(), "Session id is not valid");
+
         Optional<Session> optionalSession = sessionRepository.findById(logoutRequestDto.getSessionId());
 
         if(optionalSession.isEmpty()){
-            throw new UserException("Invalid session id");
+            throw new SessionException("Invalid session id");
         }
 
         Session session = optionalSession.get();
 
         if(!session.getUser().getId().equals(logoutRequestDto.getUserId())){
-            throw new UserException("Invalid user id");
+            throw new SessionException("Invalid user id");
         }
 
         if(!session.getToken().equals(logoutRequestDto.getToken())){
-            throw new UserException("Invalid token");
+            throw new SessionException("Invalid token");
         }
 
         sessionRepository.deleteSessionByIdAndUserId(logoutRequestDto.getSessionId(), logoutRequestDto.getUserId());
