@@ -6,6 +6,7 @@ import com.praveen.userService.dtos.SignUpRequestDto;
 import com.praveen.userService.dtos.UserDto;
 import com.praveen.userService.exceptions.UserException;
 import com.praveen.userService.models.Session;
+import com.praveen.userService.models.SessionStatus;
 import com.praveen.userService.models.User;
 import com.praveen.userService.repositories.SessionRepository;
 import com.praveen.userService.repositories.UserRepository;
@@ -13,6 +14,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.Optional;
 
 @Service
@@ -53,7 +55,8 @@ public class AuthServiceImpl implements AuthService {
 
         Session session = new Session();
         session.setToken("someRandomToken");
-        session.setValid(true);
+        session.setStatus(SessionStatus.ACTIVE);
+        session.setExpiringAt(new Date(System.currentTimeMillis() + 3600000));
         session.setUser(user);
         sessionRepository.save(session);
 
