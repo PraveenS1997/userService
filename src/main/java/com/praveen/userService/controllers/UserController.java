@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class UserController {
     @PostMapping("/users")
-    public void addUser(@RequestBody UserDto userDto) {
-        System.out.println("User signed up");
+    public UserDto addUser(@RequestBody UserDto userDto) {
+        return new UserDto();
     }
 
     @PostMapping("/login")

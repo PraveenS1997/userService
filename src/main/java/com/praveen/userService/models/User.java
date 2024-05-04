@@ -12,6 +12,7 @@ import java.util.List;
 @Table(indexes = {@Index(name = "idx_users_email", columnList = "email", unique = true)})
 public class User {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
