@@ -23,8 +23,10 @@ public class UserController {
     }
 
     @PostMapping("/{id}/roles")
-    public ResponseEntity<UserDto> assignRolesToUser(@PathVariable("id") Long id,
-                                                     @RequestBody AssignRolesToUserRequestDto request){
+    public ResponseEntity<UserDto> assignRolesToUser(
+            //@RequestHeader(HttpHeaders.AUTHORIZATION) String authToken,
+            @PathVariable("id") Long id,
+            @RequestBody AssignRolesToUserRequestDto request){
         UserDto user = userService.assignRolesToUser(id, request.getRoleIds());
         return new ResponseEntity<>(user, HttpStatus.CREATED);
     }

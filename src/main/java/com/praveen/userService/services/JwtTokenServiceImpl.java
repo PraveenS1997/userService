@@ -2,6 +2,7 @@ package com.praveen.userService.services;
 
 import com.praveen.userService.configs.UserServiceConfiguration;
 import com.praveen.userService.constants.UserServiceClaims;
+import com.praveen.userService.models.Role;
 import com.praveen.userService.models.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -11,8 +12,10 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 
 @Service
 @Primary
@@ -34,6 +37,14 @@ public class JwtTokenServiceImpl implements JwtTokenService {
         claims.put(UserServiceClaims.email, user.getEmail());
         claims.put(UserServiceClaims.userId, user.getId().toString());
         claims.put(UserServiceClaims.expiryAt, String.valueOf(expiryAt.getTime()/1000));
+
+        List<String> roles = new ArrayList<>();
+
+        for (Role role : user.getRoles()){
+            roles.add(role.getRole());
+        }
+
+        claims.put(UserServiceClaims.roles, roles.toString());
 
         return Jwts.builder()
                 .claims(claims)
