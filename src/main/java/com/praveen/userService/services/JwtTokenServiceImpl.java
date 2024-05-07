@@ -28,8 +28,7 @@ public class JwtTokenServiceImpl implements JwtTokenService {
         SecretKey secretKey = Keys
                 .hmacShaKeyFor(userServiceConfiguration.getSecretKey().getBytes());
 
-        Date now = new Date();
-        Date expiryAt = new Date(now.getTime() + (long) userServiceConfiguration.getTokenExpirationInMinutes() * 60 * 1000);
+        Date expiryAt = new Date(new Date().getTime() + (long) userServiceConfiguration.getTokenExpirationInMinutes() * 60 * 1000);
 
         HashMap<String, String> claims = new HashMap<>();
         claims.put(UserServiceClaims.email, user.getEmail());
@@ -56,7 +55,7 @@ public class JwtTokenServiceImpl implements JwtTokenService {
 
             Date expiryAt = claims.getExpiration();
 
-            return expiryAt != null && expiryAt.before(new Date());
+            return expiryAt == null || expiryAt.before(new Date());
         }
         catch (JwtException | IllegalArgumentException jwtException){
             return true;

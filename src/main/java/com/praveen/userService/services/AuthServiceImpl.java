@@ -42,7 +42,7 @@ public class AuthServiceImpl implements AuthService {
 
         Optional<User> user = userRepository.findUserByEmail(signUpRequestDto.getEmail());
 
-        if(user.isEmpty()){
+        if(user.isPresent()){
             throw new UserAlreadyExistException("Email " + signUpRequestDto.getEmail() + " already exists");
         }
 

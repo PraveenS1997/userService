@@ -24,4 +24,7 @@ public class User extends BaseModel {
     // to avoid creating a join table, we use the mappedBy attribute
     @OneToMany(mappedBy = "user")
     private List<Session> sessions;
+
+    @ManyToMany
+    private List<Role> roles;
 }
