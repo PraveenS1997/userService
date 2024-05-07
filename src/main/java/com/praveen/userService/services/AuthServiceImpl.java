@@ -1,6 +1,5 @@
 package com.praveen.userService.services;
 
-import com.praveen.userService.configs.UserServiceConfiguration;
 import com.praveen.userService.dtos.*;
 import com.praveen.userService.exceptions.UserAlreadyExistException;
 import com.praveen.userService.exceptions.UserNotFoundException;
@@ -9,15 +8,11 @@ import com.praveen.userService.models.SessionStatus;
 import com.praveen.userService.models.User;
 import com.praveen.userService.repositories.SessionRepository;
 import com.praveen.userService.repositories.UserRepository;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import javax.crypto.SecretKey;
-import java.util.HashMap;
 import java.util.Optional;
 
 @Service
@@ -26,15 +21,16 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final SessionRepository sessionRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
-    private final UserServiceConfiguration userServiceConfiguration;
+    private final JwtTokenService jwtTokenService;
 
     public AuthServiceImpl(UserRepository userRepository,
                            SessionRepository sessionRepository,
-                           BCryptPasswordEncoder bCryptPasswordEncoder, UserServiceConfiguration userServiceConfiguration) {
+                           BCryptPasswordEncoder bCryptPasswordEncoder,
+                           JwtTokenService jwtTokenService) {
         this.userRepository = userRepository;
         this.sessionRepository = sessionRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-        this.userServiceConfiguration = userServiceConfiguration;
+        this.jwtTokenService = jwtTokenService;
     }
 
     @Override
@@ -71,7 +67,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         User user = optionalUser.get();
-        String jws = generateAuthToken(user);
+        String jws = jwtTokenService.generateAuthToken(user);
 
         Session session = new Session();
         session.setToken(jws);
@@ -86,10 +82,11 @@ public class AuthServiceImpl implements AuthService {
     public void logout(LogoutRequestDto logoutRequestDto) {
         Assert.notNull(logoutRequestDto, "LoginRequestDto is required");
         Assert.notNull(logoutRequestDto.getToken(), "Token is required");
+        Assert.notNull(logoutRequestDto.getUserId(), "User Id is required");
 
-        Optional<Session> optionalSession = sessionRepository.findByToken(logoutRequestDto.getToken());
+        Optional<Session> optionalSession = sessionRepository
+                .findByTokenAndUser_IdAndStatus(logoutRequestDto.getToken(), logoutRequestDto.getUserId(), SessionStatus.ACTIVE);
 
-        // Todo: token validation will be done in the other method
         if(optionalSession.isEmpty()){
             return;
         }
@@ -101,21 +98,13 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ValidateTokenResponseDto validateToken(ValidateTokenRequestDto validateTokenRequestDto) {
-        return null;
-    }
+        Optional<Session> optionalSession = sessionRepository
+                .findByTokenAndUser_IdAndStatus(validateTokenRequestDto.getToken(), validateTokenRequestDto.getUserId(), SessionStatus.ACTIVE);
 
-    private String generateAuthToken(User user) {
-        SecretKey secretKey = Keys
-                .hmacShaKeyFor(userServiceConfiguration.getSecretKey().getBytes());
+        if(optionalSession.isEmpty() || jwtTokenService.isTokenExpired(validateTokenRequestDto.getToken())){
+            return new ValidateTokenResponseDto(SessionStatus.ENDED);
+        }
 
-        HashMap<String, String> claims = new HashMap<>();
-        claims.put("email", user.getEmail());
-        claims.put("userId", user.getId().toString());
-        claims.put("expiryAt", String.valueOf(System.currentTimeMillis() + (long) userServiceConfiguration.getTokenExpirationInMinutes() * 60 * 1000));
-
-        return Jwts.builder()
-                .claims(claims)
-                .signWith(secretKey, Jwts.SIG.HS256)
-                .compact();
+        return new ValidateTokenResponseDto(SessionStatus.ACTIVE);
     }
 }
