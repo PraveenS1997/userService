@@ -1,19 +1,23 @@
 package com.praveen.userService.services;
 
+import com.praveen.userService.configs.UserServiceConfiguration;
 import com.praveen.userService.dtos.*;
+import com.praveen.userService.exceptions.UserAlreadyExistException;
 import com.praveen.userService.exceptions.UserNotFoundException;
 import com.praveen.userService.models.Session;
 import com.praveen.userService.models.SessionStatus;
 import com.praveen.userService.models.User;
 import com.praveen.userService.repositories.SessionRepository;
 import com.praveen.userService.repositories.UserRepository;
-import org.apache.commons.lang3.RandomStringUtils;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import java.util.Date;
+import javax.crypto.SecretKey;
+import java.util.HashMap;
 import java.util.Optional;
 
 @Service
@@ -22,13 +26,15 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final SessionRepository sessionRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final UserServiceConfiguration userServiceConfiguration;
 
     public AuthServiceImpl(UserRepository userRepository,
                            SessionRepository sessionRepository,
-                           BCryptPasswordEncoder bCryptPasswordEncoder) {
+                           BCryptPasswordEncoder bCryptPasswordEncoder, UserServiceConfiguration userServiceConfiguration) {
         this.userRepository = userRepository;
         this.sessionRepository = sessionRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.userServiceConfiguration = userServiceConfiguration;
     }
 
     @Override
@@ -41,7 +47,7 @@ public class AuthServiceImpl implements AuthService {
         Optional<User> user = userRepository.findUserByEmail(signUpRequestDto.getEmail());
 
         if(user.isEmpty()){
-            throw new UserNotFoundException("Email " + signUpRequestDto.getEmail() + " already exists");
+            throw new UserAlreadyExistException("Email " + signUpRequestDto.getEmail() + " already exists");
         }
 
         User newUser = new User();
@@ -64,11 +70,13 @@ public class AuthServiceImpl implements AuthService {
             throw new UserNotFoundException("Invalid username and password");
         }
 
+        User user = optionalUser.get();
+        String jws = generateAuthToken(user);
+
         Session session = new Session();
-        session.setToken(RandomStringUtils.randomAlphanumeric(30));
+        session.setToken(jws);
         session.setStatus(SessionStatus.ACTIVE);
-        session.setExpiringAt(new Date(System.currentTimeMillis() + 3600000));
-        session.setUser(optionalUser.get());
+        session.setUser(user);
         sessionRepository.save(session);
 
         return LoginResponseDto.from(session);
@@ -87,12 +95,27 @@ public class AuthServiceImpl implements AuthService {
         }
 
         Session session = optionalSession.get();
-        session.setStatus(SessionStatus.INACTIVE);
+        session.setStatus(SessionStatus.ENDED);
         sessionRepository.save(session);
     }
 
     @Override
     public ValidateTokenResponseDto validateToken(ValidateTokenRequestDto validateTokenRequestDto) {
         return null;
+    }
+
+    private String generateAuthToken(User user) {
+        SecretKey secretKey = Keys
+                .hmacShaKeyFor(userServiceConfiguration.getSecretKey().getBytes());
+
+        HashMap<String, String> claims = new HashMap<>();
+        claims.put("email", user.getEmail());
+        claims.put("userId", user.getId().toString());
+        claims.put("expiryAt", String.valueOf(System.currentTimeMillis() + (long) userServiceConfiguration.getTokenExpirationInMinutes() * 60 * 1000));
+
+        return Jwts.builder()
+                .claims(claims)
+                .signWith(secretKey, Jwts.SIG.HS256)
+                .compact();
     }
 }
