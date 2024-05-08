@@ -16,6 +16,9 @@ public class UserServiceConfiguration {
     @Value("${jwt.token.expiration.in.minutes}")
     private int tokenExpirationInMinutes;
 
+    @Value("${jwt.cookie.name}")
+    private String tokenCookieName;
+
     // The return value of this method will be registered as a bean in the Spring application context.
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {

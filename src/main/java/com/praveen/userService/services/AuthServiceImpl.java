@@ -8,6 +8,7 @@ import com.praveen.userService.models.SessionStatus;
 import com.praveen.userService.models.User;
 import com.praveen.userService.repositories.SessionRepository;
 import com.praveen.userService.repositories.UserRepository;
+import com.praveen.userService.security.JwtTokenUtil;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,16 +22,16 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final SessionRepository sessionRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
-    private final JwtTokenService jwtTokenService;
+    private final JwtTokenUtil jwtTokenUtil;
 
     public AuthServiceImpl(UserRepository userRepository,
                            SessionRepository sessionRepository,
                            BCryptPasswordEncoder bCryptPasswordEncoder,
-                           JwtTokenService jwtTokenService) {
+                           JwtTokenUtil jwtTokenService) {
         this.userRepository = userRepository;
         this.sessionRepository = sessionRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-        this.jwtTokenService = jwtTokenService;
+        this.jwtTokenUtil = jwtTokenService;
     }
 
     @Override
@@ -67,7 +68,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         User user = optionalUser.get();
-        String jws = jwtTokenService.generateAuthToken(user);
+        String jws = jwtTokenUtil.generateAuthToken(user);
 
         Session session = new Session();
         session.setToken(jws);
@@ -101,7 +102,7 @@ public class AuthServiceImpl implements AuthService {
         Optional<Session> optionalSession = sessionRepository
                 .findByTokenAndUser_IdAndStatus(validateTokenRequestDto.getToken(), validateTokenRequestDto.getUserId(), SessionStatus.ACTIVE);
 
-        if(optionalSession.isEmpty() || jwtTokenService.isTokenExpired(validateTokenRequestDto.getToken())){
+        if(optionalSession.isEmpty() || jwtTokenUtil.isTokenExpired(validateTokenRequestDto.getToken())){
             return new ValidateTokenResponseDto(SessionStatus.ENDED);
         }
 

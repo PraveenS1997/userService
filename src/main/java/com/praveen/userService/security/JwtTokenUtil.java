@@ -1,4 +1,4 @@
-package com.praveen.userService.services;
+package com.praveen.userService.security;
 
 import com.praveen.userService.configs.UserServiceConfiguration;
 import com.praveen.userService.constants.UserServiceClaims;
@@ -8,30 +8,25 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Service;
+import org.springframework.http.ResponseCookie;
+import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
-@Service
-@Primary
-public class JwtTokenServiceImpl implements JwtTokenService {
+@Component
+public class JwtTokenUtil {
     private final UserServiceConfiguration userServiceConfiguration;
 
-    public JwtTokenServiceImpl(UserServiceConfiguration userServiceConfiguration){
+    public JwtTokenUtil(UserServiceConfiguration userServiceConfiguration){
         this.userServiceConfiguration = userServiceConfiguration;
     }
 
-    @Override
     public String generateAuthToken(User user) {
-        SecretKey secretKey = Keys
-                .hmacShaKeyFor(userServiceConfiguration.getSecretKey().getBytes());
+        SecretKey secretKey = getSecretKey();
 
-        Date expiryAt = new Date(new Date().getTime() + (long) userServiceConfiguration.getTokenExpirationInMinutes() * 60 * 1000);
+        Date expiryAt = new Date(new Date().getTime()
+                + (long) userServiceConfiguration.getTokenExpirationInMinutes() * 60 * 1000);
 
         HashMap<String, String> claims = new HashMap<>();
         claims.put(UserServiceClaims.email, user.getEmail());
@@ -52,10 +47,8 @@ public class JwtTokenServiceImpl implements JwtTokenService {
                 .compact();
     }
 
-    @Override
     public boolean isTokenExpired(String token){
-        SecretKey secretKey = Keys
-                .hmacShaKeyFor(userServiceConfiguration.getSecretKey().getBytes());
+        SecretKey secretKey = getSecretKey();
 
         try {
             Claims claims = Jwts.parser()
@@ -71,5 +64,17 @@ public class JwtTokenServiceImpl implements JwtTokenService {
         catch (JwtException | IllegalArgumentException jwtException){
             return true;
         }
+    }
+
+    public ResponseCookie getResponseCookie(String token){
+        return ResponseCookie
+                .from(userServiceConfiguration.getTokenCookieName(), token)
+                .path("/")
+                .build();
+    }
+
+    private SecretKey getSecretKey() {
+        return Keys
+                .hmacShaKeyFor(userServiceConfiguration.getSecretKey().getBytes());
     }
 }

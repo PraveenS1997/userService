@@ -1,6 +1,7 @@
 package com.praveen.userService.controllers;
 
 import com.praveen.userService.dtos.*;
+import com.praveen.userService.security.JwtTokenUtil;
 import com.praveen.userService.services.AuthService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -11,9 +12,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auth")
 public class AuthController {
     private final AuthService authService;
+    private final JwtTokenUtil jwtTokenUtil;
 
-    public AuthController(AuthService userService) {
+    public AuthController(AuthService userService, JwtTokenUtil jwtTokenUtil) {
         this.authService = userService;
+        this.jwtTokenUtil = jwtTokenUtil;
     }
 
     @PostMapping("/login")
@@ -22,7 +25,8 @@ public class AuthController {
                 .login(loginRequestDto.getEmail(), loginRequestDto.getPassword());
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.SET_COOKIE, "auth-token:"+loginResponseDto.getToken());
+        headers.add(HttpHeaders.SET_COOKIE,
+                jwtTokenUtil.getResponseCookie(loginResponseDto.getToken()).toString());
 
         return new ResponseEntity<>(loginResponseDto, headers, HttpStatus.OK);
     }

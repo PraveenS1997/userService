@@ -24,7 +24,7 @@ public class UserController {
 
     @PostMapping("/{id}/roles")
     public ResponseEntity<UserDto> assignRolesToUser(
-            //@RequestHeader(HttpHeaders.AUTHORIZATION) String authToken,
+            @CookieValue(name = "auth-token") String authToken,
             @PathVariable("id") Long id,
             @RequestBody AssignRolesToUserRequestDto request){
         UserDto user = userService.assignRolesToUser(id, request.getRoleIds());
