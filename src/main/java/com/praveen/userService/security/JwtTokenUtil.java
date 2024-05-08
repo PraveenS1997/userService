@@ -47,22 +47,16 @@ public class JwtTokenUtil {
                 .compact();
     }
 
-    public boolean isTokenExpired(String token){
-        SecretKey secretKey = getSecretKey();
-
+    public boolean isTokenValid(String token){
         try {
-            Claims claims = Jwts.parser()
-                    .verifyWith(secretKey)
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
+            Claims claims = getClaims(token);
 
             Date expiryAt = claims.getExpiration();
 
-            return expiryAt == null || expiryAt.before(new Date());
+            return expiryAt != null && !expiryAt.before(new Date());
         }
         catch (JwtException | IllegalArgumentException jwtException){
-            return true;
+            return false;
         }
     }
 
@@ -73,8 +67,32 @@ public class JwtTokenUtil {
                 .build();
     }
 
+    // Todo: Yet to complete the is admin user logic
+    public boolean isAdminUser(String token) {
+        if(!isTokenValid(token)){
+            return false;
+        }
+
+        Claims claims = getClaims(token);
+        List<String> roles = (List<String>) claims.get(UserServiceClaims.roles);
+
+        return roles
+                .stream()
+                .anyMatch(r -> r.equalsIgnoreCase("Admin"));
+    }
+
     private SecretKey getSecretKey() {
         return Keys
                 .hmacShaKeyFor(userServiceConfiguration.getSecretKey().getBytes());
+    }
+
+    private Claims getClaims(String token){
+        SecretKey secretKey = getSecretKey();
+
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }

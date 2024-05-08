@@ -102,7 +102,7 @@ public class AuthServiceImpl implements AuthService {
         Optional<Session> optionalSession = sessionRepository
                 .findByTokenAndUser_IdAndStatus(validateTokenRequestDto.getToken(), validateTokenRequestDto.getUserId(), SessionStatus.ACTIVE);
 
-        if(optionalSession.isEmpty() || jwtTokenUtil.isTokenExpired(validateTokenRequestDto.getToken())){
+        if(optionalSession.isEmpty() || jwtTokenUtil.isTokenValid(validateTokenRequestDto.getToken())){
             return new ValidateTokenResponseDto(SessionStatus.ENDED);
         }
 
