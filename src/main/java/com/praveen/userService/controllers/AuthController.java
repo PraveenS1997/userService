@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+// REST semantics (i.e. do not change state with the HTTP methods GET, HEAD, TRACE, OPTIONS).
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
