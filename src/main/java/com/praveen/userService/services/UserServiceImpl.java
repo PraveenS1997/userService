@@ -7,7 +7,6 @@ import com.praveen.userService.models.Role;
 import com.praveen.userService.models.User;
 import com.praveen.userService.repositories.RoleRepository;
 import com.praveen.userService.repositories.UserRepository;
-import com.praveen.userService.security.JwtTokenUtil;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -18,12 +17,10 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final JwtTokenUtil jwtTokenUtil;
 
-    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, JwtTokenUtil jwtTokenUtil) {
+    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
-        this.jwtTokenUtil = jwtTokenUtil;
     }
 
     @Override
@@ -38,9 +35,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto assignRolesToUser(Long id, List<Long> roleIds, String token) throws IllegalAccessException {
-        EnsureUserHasAdminRole(token);
-
+    public UserDto assignRolesToUser(Long id, List<Long> roleIds) {
         Optional<User> optionalUser = userRepository.findById(id);
 
         if(optionalUser.isEmpty()){
@@ -64,11 +59,5 @@ public class UserServiceImpl implements UserService {
         User savedUser = userRepository.save(user);
 
         return UserDto.from(savedUser);
-    }
-
-    private void EnsureUserHasAdminRole(String token) throws IllegalAccessException {
-        if(!jwtTokenUtil.isAdminUser(token)){
-            throw new IllegalAccessException("User does not have permission to assign roles to other users");
-        }
     }
 }

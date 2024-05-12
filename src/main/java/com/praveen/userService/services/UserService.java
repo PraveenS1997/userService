@@ -7,5 +7,5 @@ import java.util.List;
 public interface UserService {
     UserDto getUser(Long id);
 
-    UserDto assignRolesToUser(Long id, List<Long> roleIds, String token) throws IllegalAccessException;
+    UserDto assignRolesToUser(Long id, List<Long> roleIds) throws IllegalAccessException;
 }

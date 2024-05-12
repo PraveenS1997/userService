@@ -26,9 +26,9 @@ public class User extends BaseModel {
     // mappedBy attribute is used to specify the entity property that owns the relationship
     // in this case, the user property in the Session entity
     // to avoid creating a join table, we use the mappedBy attribute
-    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
-    @JsonIgnore
-    private List<Session> sessions;
+    // @OneToMany(fetch = FetchType.LAZY)
+    // @JsonIgnore
+    // private List<Authorization> authorizations;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JsonIgnore

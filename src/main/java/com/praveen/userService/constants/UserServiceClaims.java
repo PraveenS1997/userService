@@ -1,8 +1,6 @@
 package com.praveen.userService.constants;
 
 public class UserServiceClaims{
-    public static String email = "email";
-    public static String userId = "userId";
-    public static String expiryAt = "exp";
-    public static String roles = "roles";
+    public static final String userId = "userId";
+    public static final String roles = "roles";
 }

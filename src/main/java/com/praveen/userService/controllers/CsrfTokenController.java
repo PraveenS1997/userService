@@ -21,6 +21,7 @@ public class CsrfTokenController {
     public String getCsrfToken(HttpServletRequest request) {
         // After obtaining the token, the client should pass it in the header of the HTTP request or in the form data as a hidden field.
         CsrfToken csrf = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
+        // The client should pass the token in the X-CSRF-TOKEN header.
         return csrf.getToken();
     }
 }

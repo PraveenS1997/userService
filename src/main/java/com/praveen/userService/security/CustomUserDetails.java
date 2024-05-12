@@ -7,6 +7,7 @@ import com.praveen.userService.models.User;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
@@ -33,11 +34,10 @@ public class CustomUserDetails implements UserDetails {
     @Override
     @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        List<CustomUserGrantedAuthority> authorities = new ArrayList<>();
+        List<GrantedAuthority> authorities = new ArrayList<>();
 
         for (Role role : user.getRoles()){
-            CustomUserGrantedAuthority customUserGrantedAuthority = new CustomUserGrantedAuthority(role);
-            authorities.add(customUserGrantedAuthority);
+            authorities.add(new SimpleGrantedAuthority(role.getRole()));
         }
 
         return authorities;

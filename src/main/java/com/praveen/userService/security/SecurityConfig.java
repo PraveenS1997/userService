@@ -14,6 +14,7 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 
+import com.praveen.userService.constants.UserServiceClaims;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -75,13 +76,9 @@ public class SecurityConfig {
         // CsrfFilter is invoked for any request that allows state to change.
         http
                 .authorizeHttpRequests((authorize) -> authorize
-                        // Allow all requests to the endpoint /csrf-token without authentication
-                        .requestMatchers("/csrf-token").permitAll()
-                        // Todo: Add authorization rules for the API endpoints
+                        .requestMatchers("/roles/**", "/users/**").authenticated()
                         .anyRequest().permitAll()
                 )
-                .csrf(Customizer.withDefaults())
-                .cors(Customizer.withDefaults())
                 // Form login handles the redirect to the login page from the authorization server filter chain
                 .formLogin(Customizer.withDefaults());
 
@@ -136,8 +133,8 @@ public class SecurityConfig {
                             .map(c -> c.replaceFirst("^ROLE_", ""))
                             .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
 
-                    claims.put("userId", ((CustomUserDetails) context.getPrincipal().getPrincipal()).getUser().getId());
-                    claims.put("roles", roles);
+                    claims.put(UserServiceClaims.userId, ((CustomUserDetails) context.getPrincipal().getPrincipal()).getUser().getId());
+                    claims.put(UserServiceClaims.roles, roles);
                 });
             }
         };

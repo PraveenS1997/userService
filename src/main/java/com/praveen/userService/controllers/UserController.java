@@ -1,9 +1,7 @@
 package com.praveen.userService.controllers;
 
-import com.praveen.userService.dtos.AssignRolesToUserRequestDto;
 import com.praveen.userService.dtos.UserDto;
 import com.praveen.userService.services.UserService;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,14 +19,5 @@ public class UserController {
     public ResponseEntity<UserDto> getUser(@PathVariable("id") Long id){
         UserDto user = userService.getUser(id);
         return new ResponseEntity<>(user, HttpStatus.OK);
-    }
-
-    @PostMapping("/{id}/roles")
-    public ResponseEntity<UserDto> assignRolesToUser(
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String authToken,
-            @PathVariable("id") Long id,
-            @RequestBody AssignRolesToUserRequestDto request) throws IllegalAccessException {
-        UserDto user = userService.assignRolesToUser(id, request.getRoleIds(), authToken);
-        return new ResponseEntity<>(user, HttpStatus.CREATED);
     }
 }
