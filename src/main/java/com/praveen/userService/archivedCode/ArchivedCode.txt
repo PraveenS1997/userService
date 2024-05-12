@@ -1,0 +1,135 @@
+
+    @Value("${jwt.secret.key}")
+    private String secretKey;
+
+    @Value("${jwt.token.expiration.in.minutes}")
+    private int tokenExpirationInMinutes;
+
+    @Value("${jwt.cookie.name}")
+    private String tokenCookieName;
+
+// Custom login endpoint is not required as we can use the default /login endpoint provided by Spring Security
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequestDto) {
+        LoginResponseDto loginResponseDto = authService
+                .login(loginRequestDto.getEmail(), loginRequestDto.getPassword());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.SET_COOKIE,
+                jwtTokenUtil.getResponseCookie(loginResponseDto.getToken()).toString());
+
+        return new ResponseEntity<>(loginResponseDto, headers, HttpStatus.OK);
+    }
+
+    @PostMapping("/validate-token")
+    public ResponseEntity<ValidateTokenResponseDto> validateToken(@RequestBody ValidateTokenRequestDto validateTokenRequestDto) {
+        ValidateTokenResponseDto validateTokenResponseDto = authService.validateToken(validateTokenRequestDto);
+        return new ResponseEntity<>(validateTokenResponseDto, HttpStatus.OK);
+    }
+
+
+// Custom token validation endpoint
+    public ValidateTokenResponseDto validateToken(ValidateTokenRequestDto validateTokenRequestDto) {
+        Optional<Session> optionalSession = sessionRepository
+                .findByTokenAndUser_IdAndStatus(validateTokenRequestDto.getToken(), validateTokenRequestDto.getUserId(), SessionStatus.ACTIVE);
+
+        if(optionalSession.isEmpty() || jwtTokenUtil.isTokenValid(validateTokenRequestDto.getToken())){
+            return new ValidateTokenResponseDto(SessionStatus.ENDED);
+        }
+
+        return new ValidateTokenResponseDto(SessionStatus.ACTIVE);
+    }
+
+
+    @Override
+    public LoginResponseDto login(String email, String password) {
+        Assert.notNull(email, "Email is required");
+        Assert.notNull(password, "Password is required");
+
+        Optional<User> optionalUser = userRepository.findUserByEmail(email);
+
+        if(optionalUser.isEmpty() || !bCryptPasswordEncoder.matches(password, optionalUser.get().getPassword())){
+            throw new UserNotFoundException("Invalid username and password");
+        }
+
+        User user = optionalUser.get();
+        String jws = jwtTokenUtil.generateAuthToken(user);
+
+        Session session = new Session();
+        session.setToken(jws);
+        session.setStatus(SessionStatus.ACTIVE);
+        session.setUser(user);
+        sessionRepository.save(session);
+
+        return LoginResponseDto.from(session);
+    }
+
+@Getter
+@Setter
+public class LoginRequestDto {
+    private String email;
+    private String password;
+}
+
+@Getter
+@Setter
+public class LoginResponseDto {
+    private String name;
+    private String email;
+    private String status;
+    private String sessionId;
+    private String token;
+
+    public static LoginResponseDto from(Session session) {
+        LoginResponseDto loginResponseDto = new LoginResponseDto();
+        loginResponseDto.setName(session.getUser().getName());
+        loginResponseDto.setEmail(session.getUser().getEmail());
+        loginResponseDto.setStatus("Logged in successfully");
+        loginResponseDto.setSessionId(session.getId().toString());
+        loginResponseDto.setToken(session.getToken());
+
+        return loginResponseDto;
+    }
+}
+
+@Getter
+@Setter
+public class ValidateTokenRequestDto {
+    private Long userId;
+    private String token;
+}
+
+@Getter
+@Setter
+@AllArgsConstructor
+public class ValidateTokenResponseDto {
+    private SessionStatus status;
+}
+
+@Override
+    public void logout(LogoutRequestDto logoutRequestDto) {
+        Assert.notNull(logoutRequestDto, "LoginRequestDto is required");
+        Assert.notNull(logoutRequestDto.getToken(), "Token is required");
+        Assert.notNull(logoutRequestDto.getUserId(), "User Id is required");
+
+        Optional<Session> optionalSession = sessionRepository
+                .findByTokenAndUser_IdAndStatus(logoutRequestDto.getToken(), logoutRequestDto.getUserId(), SessionStatus.ACTIVE);
+
+        if(optionalSession.isEmpty()){
+            return;
+        }
+
+        Session session = optionalSession.get();
+        session.setStatus(SessionStatus.ENDED);
+        sessionRepository.save(session);
+    }
+
+    @PostMapping("/logoff")
+    public ResponseEntity<Void> logout(@RequestBody LogoutRequestDto logoutRequestDto) {
+        authService.logout(logoutRequestDto);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+#jwt.secret.key=IOBZfsqrcQdmJJwMsIPGPOukPHJBaHKZ
+#jwt.token.expiration.in.minutes=5
+#jwt.cookie.name=auth-token
