@@ -27,24 +27,24 @@ class UserServiceApplicationTests {
 	void contextLoads() {
 	}
 
-	@Test
-	@Commit
-	void saveDefaultClient() {
-		RegisteredClient postmanClient = RegisteredClient.withId(UUID.randomUUID().toString())
-				.clientId("macbook-local-postman")
-				.clientSecret(bCryptPasswordEncoder.encode("bUlPZXjtXp"))
-				.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-				.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-				.authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-				.authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-				.redirectUri("http://127.0.0.1:8080/login/oauth2/code/oidc-client")
-				.redirectUri("https://oauth.pstmn.io/v1/callback")
-				.postLogoutRedirectUri("http://127.0.0.1:8080/")
-				.scope(OidcScopes.OPENID)
-				.scope(OidcScopes.PROFILE)
-				.clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
-				.build();
-
-		jpaRegisteredClientRepository.save(postmanClient);
-	}
+//	@Test
+//	@Commit
+//	void saveDefaultClient() {
+//		RegisteredClient postmanClient = RegisteredClient.withId(UUID.randomUUID().toString())
+//				.clientId("macbook-local-postman")
+//				.clientSecret(bCryptPasswordEncoder.encode("bUlPZXjtXp"))
+//				.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+//				.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+//				.authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+//				.authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+//				.redirectUri("http://127.0.0.1:8080/login/oauth2/code/oidc-client")
+//				.redirectUri("https://oauth.pstmn.io/v1/callback")
+//				.postLogoutRedirectUri("http://127.0.0.1:8080/")
+//				.scope(OidcScopes.OPENID)
+//				.scope(OidcScopes.PROFILE)
+//				.clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
+//				.build();
+//
+//		jpaRegisteredClientRepository.save(postmanClient);
+//	}
 }

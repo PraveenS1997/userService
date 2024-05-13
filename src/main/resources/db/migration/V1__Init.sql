@@ -34,7 +34,6 @@ CREATE TABLE authorization
     device_code_issued_at         datetime     NULL,
     device_code_expires_at        datetime     NULL,
     device_code_metadata          TEXT         NULL,
-    user_id                       BIGINT       NULL,
     CONSTRAINT pk_authorization PRIMARY KEY (id)
 );
 
@@ -80,36 +79,19 @@ CREATE TABLE user
     CONSTRAINT pk_user PRIMARY KEY (id)
 );
 
-CREATE TABLE user_authorizations
+CREATE TABLE user_role
 (
-    user_id           BIGINT       NOT NULL,
-    authorizations_id VARCHAR(255) NOT NULL
+    role_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    CONSTRAINT pk_user_role PRIMARY KEY (role_id, user_id)
 );
-
-CREATE TABLE user_roles
-(
-    user_id  BIGINT NOT NULL,
-    roles_id BIGINT NOT NULL
-);
-
-ALTER TABLE user_authorizations
-    ADD CONSTRAINT uc_user_authorizations_authorizations UNIQUE (authorizations_id);
 
 CREATE UNIQUE INDEX idx_role_name ON `role` (`role`);
 
 CREATE UNIQUE INDEX idx_users_email ON user (email);
 
-ALTER TABLE authorization
-    ADD CONSTRAINT FK_AUTHORIZATION_ON_USER FOREIGN KEY (user_id) REFERENCES user (id);
+ALTER TABLE user_role
+    ADD CONSTRAINT fk_user_role_on_role FOREIGN KEY (role_id) REFERENCES `role` (id);
 
-ALTER TABLE user_authorizations
-    ADD CONSTRAINT fk_useaut_on_authorization FOREIGN KEY (authorizations_id) REFERENCES authorization (id);
-
-ALTER TABLE user_authorizations
-    ADD CONSTRAINT fk_useaut_on_user FOREIGN KEY (user_id) REFERENCES user (id);
-
-ALTER TABLE user_roles
-    ADD CONSTRAINT fk_userol_on_role FOREIGN KEY (roles_id) REFERENCES `role` (id);
-
-ALTER TABLE user_roles
-    ADD CONSTRAINT fk_userol_on_user FOREIGN KEY (user_id) REFERENCES user (id);
+ALTER TABLE user_role
+    ADD CONSTRAINT fk_user_role_on_user FOREIGN KEY (user_id) REFERENCES user (id);

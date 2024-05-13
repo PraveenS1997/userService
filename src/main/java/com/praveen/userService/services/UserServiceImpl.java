@@ -10,6 +10,7 @@ import com.praveen.userService.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -55,7 +56,7 @@ public class UserServiceImpl implements UserService {
             roles.add(optionalRole.get());
         }
 
-        user.setRoles(roles);
+        user.setRoles(new HashSet<>(roles));
         User savedUser = userRepository.save(user);
 
         return UserDto.from(savedUser);
